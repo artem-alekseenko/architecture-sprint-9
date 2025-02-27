@@ -1,0 +1,42 @@
+@startuml
+!define RECTANGLE class
+allow_mixing
+
+skinparam linetype ortho
+
+title Передача актуальных ставок
+
+' Контейнеры
+RECTANGLE "АБС: Oracle DB (DepositRates)" as ABSDB
+RECTANGLE "АБС: PL/SQL Logic" as ABSLogic
+RECTANGLE "АБС: Delphi Client" as ABSDesktop
+
+RECTANGLE "Бэк-офис: Excel" as BackOfficeExcel
+
+RECTANGLE "Система кол-центра: Front-end (React)" as CallCenterFE
+RECTANGLE "Система кол-центра: Back-end (Java Spring Boot)" as CallCenterBE
+RECTANGLE "Система кол-центра: База данных (PostgreSQL)" as CallCenterDB
+
+RECTANGLE "Rate Exporter" as RateExporter
+
+RECTANGLE "Партнёрский кол-центр: Внешняя система" as PartnerCallCenter
+
+' Внешние системы
+RECTANGLE "SFTP-сервер" as SFTPServer
+
+' Взаимодействия
+
+' Обновление ставок
+BackOfficeExcel --> ABSDB : Загрузка ставок
+
+' Получение ставок кол-центром банка
+CallCenterFE --> CallCenterBE : Запрос ставок
+CallCenterBE --> ABSDB : SELECT * FROM DepositRates
+CallCenterBE --> CallCenterDB : Кэширование ставок
+
+' Передача ставок партнёрскому кол-центру
+ABSDB --> RateExporter : SELECT * FROM DepositRates
+RateExporter --> SFTPServer : Отправка файла (XLS/CSV)
+SFTPServer --> PartnerCallCenter : Загрузка файла
+
+@enduml

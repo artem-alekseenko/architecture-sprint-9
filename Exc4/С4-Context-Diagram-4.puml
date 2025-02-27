@@ -1,0 +1,35 @@
+@startuml
+!define RECTANGLE class
+allow_mixing
+
+skinparam linetype ortho
+
+title Передача актуальных ставок
+
+' Акторы
+actor "Сотрудник бэк-офиса (Back-Office Manager)" as BackOfficeManager
+actor "Оператор кол-центра (Call Center Operator)" as CallCenterOperator
+actor "Оператор партнёрского кол-центра (Partner Call Center Operator)" as PartnerCallCenterOperator
+
+' Системы
+RECTANGLE "АБС (Core Banking / ABS)" as ABS
+RECTANGLE "Система кол-центра (Call Center System)" as CallCenterSystem
+RECTANGLE "Партнёрский кол-центр (Partner Call Center)" as PartnerCallCenter
+RECTANGLE "Rate Exporter" as RateExporter
+RECTANGLE "Бэк-офис (Excel)" as BackOfficeExcel
+
+' Взаимодействия
+
+' Обновление ставок
+BackOfficeManager --> BackOfficeExcel : Обновление ставок
+BackOfficeExcel --> ABS : Загрузка ставок
+
+' Получение ставок кол-центром банка
+CallCenterOperator --> CallCenterSystem : Запрос ставок
+CallCenterSystem --> ABS : Получение ставок
+
+' Передача ставок партнёрскому кол-центру
+ABS --> RateExporter : Получение ставок
+RateExporter --> PartnerCallCenter : Отправка файла (XLS/CSV) через SFTP
+
+@enduml

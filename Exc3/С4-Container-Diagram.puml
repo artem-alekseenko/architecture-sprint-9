@@ -1,0 +1,70 @@
+@startuml
+!define RECTANGLE class
+allow_mixing
+
+skinparam linetype ortho
+
+title C4: Level 2 — Container Diagram
+
+' Сайт (Website)
+RECTANGLE "Сайт: Front-end (React)" as WebsiteFE
+RECTANGLE "Сайт: Back-end (PHP)" as WebsiteBE
+RECTANGLE "Сайт: База данных (CMS/DB)" as WebsiteDB
+
+' Система кол-центра (Call Center System)
+RECTANGLE "Кол-центр: Front-end (React)" as CallCenterFE
+RECTANGLE "Кол-центр: Back-end (Java Spring Boot)" as CallCenterBE
+RECTANGLE "Кол-центр: База данных (PostgreSQL)" as CallCenterDB
+
+' Интернет-банк (Internet Banking)
+RECTANGLE "Интернет-банк: Front-end (ASP.NET MVC)" as IBFE
+RECTANGLE "Интернет-банк: Deposit Module (.NET)" as IBDeposit
+RECTANGLE "Интернет-банк: База данных (MS SQL)" as IBDB
+
+' АБС (Core Banking / ABS)
+RECTANGLE "АБС: Desktop Client (Delphi)" as ABSDesktop
+RECTANGLE "АБС: PL/SQL Logic" as ABSLogic
+RECTANGLE "АБС: База данных (Oracle)" as ABSDB
+
+' СМС-шлюз (SMS Gateway)
+RECTANGLE "СМС-шлюз" as SMSGateway
+
+' Внешние системы
+RECTANGLE "Телеком-оператор (Telco)" as Telco
+
+' Акторы
+actor "Новый клиент (New Customer)" as NewCustomer
+actor "Существующий клиент (Existing Customer)" as ExistingCustomer
+actor "Оператор кол-центра (Call Center Operator)" as CallCenterOperator
+actor "Менеджер бэк-офиса (Back-Office Manager)" as BackOfficeManager
+
+' Взаимодействия
+
+' Сайт
+NewCustomer --> WebsiteFE : Заявка (депозит)
+WebsiteFE --> WebsiteBE : Отправка данных
+WebsiteBE --> CallCenterBE : Передача заявки
+WebsiteBE --> WebsiteDB : Хранение контента
+
+' Кол-центр
+CallCenterOperator --> CallCenterFE : Работа с заявками
+CallCenterFE --> CallCenterBE : Запросы данных
+CallCenterBE --> CallCenterDB : Хранение заявок
+CallCenterBE --> ABSLogic : Запрос ставок/статуса
+
+' Интернет-банк
+ExistingCustomer --> IBFE : Заявка (депозит)
+IBFE --> IBDeposit : Обработка заявки
+IBDeposit --> IBDB : Хранение данных
+IBDeposit --> ABSLogic : Создание заявки в АБС
+
+' АБС
+BackOfficeManager --> ABSDesktop : Подтверждение депозита
+ABSDesktop --> ABSLogic : Взаимодействие
+ABSLogic --> ABSDB : Хранение данных
+ABSLogic --> SMSGateway : Отправка уведомлений
+
+' СМС-шлюз
+SMSGateway --> Telco : Передача СМС
+
+@enduml
