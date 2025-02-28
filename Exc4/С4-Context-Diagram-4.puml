@@ -1,35 +1,23 @@
 @startuml
-!define RECTANGLE class
-allow_mixing
+!include <C4/C4_Context>
 
-skinparam linetype ortho
+title Диаграмма контекста "Передача актуальных ставок"
 
-title Передача актуальных ставок
+Person(BackOfficeManager, "Сотрудник бэк-офиса", "Обновляет / редактирует ставки в Excel")
+Person(BankCallCenterOperator, "Оператор кол-центра (банк)", "Просматривает ставки и консультирует клиентов")
+Person(PartnerCCOperator, "Оператор партнёрского кол-центра", "Получает выгруженные файлы ставок")
 
-' Акторы
-actor "Сотрудник бэк-офиса (Back-Office Manager)" as BackOfficeManager
-actor "Оператор кол-центра (Call Center Operator)" as CallCenterOperator
-actor "Оператор партнёрского кол-центра (Partner Call Center Operator)" as PartnerCallCenterOperator
+System(ABS, "АБС (Core Banking System)", "Система учёта банка")
+System(CallCenterSystem, "Система кол-центра", "Позволяет операторам видеть актуальные ставки")
+System(RateExporter, "Rate Exporter", "Модуль (скрипт/сервис) для выгрузки ставок во внешнюю систему")
+System(BackOfficeExcel, "Excel (бэк-офис)", "Файл / набор Excel-шаблонов для расчёта ставок")
+System_Ext(PartnerCallCenter, "Партнёрский кол-центр", "Внешняя система для обслуживания клиентов")
 
-' Системы
-RECTANGLE "АБС (Core Banking / ABS)" as ABS
-RECTANGLE "Система кол-центра (Call Center System)" as CallCenterSystem
-RECTANGLE "Партнёрский кол-центр (Partner Call Center)" as PartnerCallCenter
-RECTANGLE "Rate Exporter" as RateExporter
-RECTANGLE "Бэк-офис (Excel)" as BackOfficeExcel
-
-' Взаимодействия
-
-' Обновление ставок
-BackOfficeManager --> BackOfficeExcel : Обновление ставок
-BackOfficeExcel --> ABS : Загрузка ставок
-
-' Получение ставок кол-центром банка
-CallCenterOperator --> CallCenterSystem : Запрос ставок
-CallCenterSystem --> ABS : Получение ставок
-
-' Передача ставок партнёрскому кол-центру
-ABS --> RateExporter : Получение ставок
-RateExporter --> PartnerCallCenter : Отправка файла (XLS/CSV) через SFTP
+Rel(BackOfficeManager, BackOfficeExcel, "Редактирует / обновляет ставки вручную")
+Rel(BackOfficeExcel, ABS, "Загружает обновлённые ставки")
+Rel(BankCallCenterOperator, CallCenterSystem, "Просматривает и озвучивает клиентам ставки")
+Rel(CallCenterSystem, ABS, "Получает актуальные ставки")
+Rel(ABS, RateExporter, "Предоставляет данные ставок (SELECT / API)")
+Rel(RateExporter, PartnerCallCenter, "Выгружает файл (XLS/CSV) SFTP")
 
 @enduml
