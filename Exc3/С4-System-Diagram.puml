@@ -1,0 +1,29 @@
+@startuml
+!define RECTANGLE class
+allow_mixing
+
+skinparam linetype ortho
+
+RECTANGLE "Сайт (Website)" as Website
+RECTANGLE "Интернет-банк (Internet Banking)" as InternetBanking
+RECTANGLE "Система кол-центра (Call Center System)" as CallCenterSystem
+RECTANGLE "АБС (Core Banking / ABS)" as ABS
+RECTANGLE "СМС-шлюз (SMS Gateway)" as SMSGateway
+RECTANGLE "Телеком-оператор (Telco)" as Telco
+
+actor "Новый клиент (New Customer)" as NewCustomer
+actor "Существующий клиент (Existing Customer)" as ExistingCustomer
+actor "Оператор кол-центра (Call Center Operator)" as CallCenterOperator
+actor "Менеджер бэк-офиса (Back-Office Manager)" as BackOfficeManager
+
+NewCustomer --> Website : Заявка (депозит)
+Website --> CallCenterSystem : Заявка (депозит)
+ExistingCustomer --> InternetBanking : Заявка (депозит)
+InternetBanking --> ABS : Заявка (депозит)
+CallCenterOperator --> CallCenterSystem : Уточнение/подтверждение
+CallCenterSystem --> ABS : Уточнение/подтверждение
+BackOfficeManager --> ABS : Подтверждение депозита
+ABS --> SMSGateway : Уведомление для клиента
+SMSGateway --> Telco : Уведомление для клиента
+
+@enduml

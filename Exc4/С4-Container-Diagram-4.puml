@@ -1,0 +1,48 @@
+@startuml
+!include <C4/C4>
+!include <C4/C4_Container>
+
+title Диаграмма контейнеров "Передача актуальных ставок"
+
+Person(BackOfficeManager, "Сотрудник бэк-офиса", "Вводит и корректирует ставки в Excel")
+Person(BankCallCenterOperator, "Оператор кол-центра (банк)", "Консультирует клиентов")
+Person(PartnerCCOperator, "Оператор партнёрского кол-центра", "Консультирует клиентов во внешней системе")
+
+System_Boundary("BankSystems", "Банк «Стандарт»") {
+
+   Container(ABSdesktop, "ABS: Delphi Client", "Delphi Desktop", "Рабочее место бэк-офиса для взаимодействия с АБС")
+   Container(ABSlogic, "ABS: PL/SQL Logic", "PL/SQL", "Основная бизнес-логика (депозиты и ставки)")
+   ContainerDb(ABSdb, "ABS DB", "Oracle", "Хранит информацию о депозитах, ставках и счетах")
+
+   Container(CallCenterFE, "Call Center FE", "React", "Интерфейс для операторов кол-центра")
+   Container(CallCenterBE, "Call Center BE", "Java Spring Boot", "Бэкенд логика кол-центра (внутри банка)")
+   ContainerDb(CallCenterDB, "Call Center DB", "PostgreSQL", "Хранение заявок, записей звонков и др.")
+
+   Container(RateExporter, "Rate Exporter", "Скрипт/Сервис", "Формирует и выгружает файл со ставками")
+
+   Container(ExcelBackOffice, "Excel (Back-Office)", "MS Excel", "Сотрудники бэк-офиса используют для расчёта ставок")
+
+}
+
+Container_Ext(PartnerCallCenter, "Partner CC System", "Внешняя система", "Принимает файл со ставками (через SFTP)")
+
+Container_Ext(SFTPServer, "SFTP-сервер", "SFTP/FTP", "Обмен файлами между банком и партнёрским кол-центром")
+
+
+Rel(BackOfficeManager, ExcelBackOffice, "Вводит/обновляет ставки вручную")
+Rel(ExcelBackOffice, ABSdesktop, "Импорт / синхронизация\n(через локальные процедуры или PL/SQL)")
+Rel(ABSdesktop, ABSlogic, "Взаимодействие с бизнес-логикой", "Delphi Client / PL/SQL")
+Rel(ABSlogic, ABSdb, "Чтение/запись ставок", "SQLNet/Oracle")
+
+Rel(BankCallCenterOperator, CallCenterFE, "Получает информацию по ставкам")
+Rel(CallCenterFE, CallCenterBE, "Запрашивает ставки", "HTTP/REST")
+Rel(CallCenterBE, CallCenterDB, "Читает/записывает данные кол-центра", "JDBC")
+Rel(CallCenterBE, ABSdb, "Получает актуальные ставки", "JDBC/SQL")
+
+Rel(ABSdb, RateExporter, "Читает таблицу DepositRates", "SELECT")
+Rel(RateExporter, SFTPServer, "Выгружает файл (CSV/XLS)", "SFTP")
+Rel(PartnerCallCenter, SFTPServer, "Забирает файл ставок", "SFTP")
+
+Rel(PartnerCCOperator, PartnerCallCenter, "Просматривает ставки (загруженные из файла)")
+
+@enduml
